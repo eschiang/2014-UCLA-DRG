@@ -1,0 +1,133 @@
+package com.example.deadreckoning;
+
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothProfile;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Vibrator;
+import android.view.Menu;
+import android.widget.Toast;
+
+
+@SuppressLint("NewApi") public class MainActivity extends Activity {
+	final long[] pattern = new long [3];
+	@SuppressLint("NewApi")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) 
+    {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        int rssi = -1000;
+    	pattern [0] =0;
+        pattern [1]= 500;
+        if (rssi <=-100)
+        	pattern [2] = 2000;
+        else if (rssi <=-75)
+        	pattern[2] = 1500;
+        else if (rssi <= -50)
+        	pattern [2]= 1000;
+        else if (rssi <=-25)
+        	pattern[2] = 500;
+        else
+        	pattern[2] = 250;
+         final Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+         final Intent intent= new Intent(this,MainActivity.class);
+         	v.vibrate(pattern,-1);
+         	new CountDownTimer(1000,100)
+         	{
+         		public void onTick(long millisUntilFinished)
+         		{
+         			;
+         		}
+         		public void onFinish()
+         		{
+         			startActivity(intent);
+         		}
+         	}.start();
+    }
+    @SuppressLint("NewApi") private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() 
+    {
+        @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2) @SuppressLint("NewApi") public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) 
+        {
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                System.out.println(gatt.getDevice() + ": Connected.. ");
+                gatt.readRemoteRssi();
+            }
+            if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                System.out.println(gatt.getDevice() + ": Disconnected.. "); 
+            }
+        }
+    };
+    
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        // When discovery finds a device
+        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+            // Get the BluetoothDevice object from the Intent
+            BluetoothDevice device = intent.getParcelableExtra
+            		(BluetoothDevice.EXTRA_DEVICE);
+            short rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI,
+            		Short.MIN_VALUE);
+            
+            // Add the name and address to an array adapter to
+            //LISTVIEW
+            if (device.getBondState() !=
+BluetoothDevice.BOND_BONDED) {
+                //do something
+            }
+        }
+   }
+};
+
+@SuppressLint("NewApi") public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) 
+{
+	rssi = -1000;
+	final BluetoothGatt g = gatt;
+	pattern [0] =0;
+    pattern [1]= 500;
+    if (rssi <=-100)
+    	pattern [2] = 2000;
+    else if (rssi <=-75)
+    	pattern[2] = 1500;
+    else if (rssi <= -50)
+    	pattern [2]= 1000;
+    else if (rssi <=-25)
+    	pattern[2] = 500;
+    else
+    	pattern[2] = 250;
+     final Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+     	v.vibrate(pattern,-1);
+     	new CountDownTimer(1000,100)
+     	{
+     		public void onTick(long millisUntilFinished)
+     		{
+     			;
+     		}
+     		public void onFinish()
+     		{
+     			g.readRemoteRssi();  
+     		}
+     	}.start();    
+
+};
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+    
+    
+    
+}
